@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem \"c:\\\\Project Github\\\\AI-Order-Processing-System\" -Recurse -Depth 2)",
+      "Bash(Sort-Object PSIsContainer, FullName)",
+      "Bash(\"C:/Program Files/Python314/python.exe\" -c \"import main; print\\('Import OK'\\)\")",
+      "Bash(\"C:/Program Files/Python314/python.exe\" -m pip install -r requirements.txt)",
+      "Bash(Test-Path \"c:\\\\Project Github\\\\AI-Order-Processing-System\\\\README.md\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\anaf\\.claude\\projects\\c--Project-Github-AI-Order-Processing-System\\memory"
+    ]
+  }
+}
