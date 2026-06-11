@@ -7,12 +7,12 @@ An automated pipeline that processes supplier order confirmation PDFs using Clau
 When a supplier sends an order confirmation PDF, this service:
 
 1. Extracts the Customer PO number from the first page
-2. Looks up the order in Priority ERP and retrieves the expected line items (PARTNAMEs)
+2. Looks up the order in Priority ERP and retrieves the expected line items
 3. Sends the full PDF to Claude for structured data extraction (quantities, prices, delivery dates)
 4. Cross-validates AI-extracted values against Priority ERP data (prices, quantities, shipping)
 5. Patches delivery dates on each line item in Priority
 6. Updates the supplier order number on the purchase order
-7. Sets the order status (`אישור ספק` if all validations pass, `נשלח לספק` if discrepancies are found)
+7. Sets the order status
 8. Persists the full result to MongoDB
 
 ## Architecture
@@ -140,23 +140,23 @@ Claude returns structured JSON with order header info (PO number, order date, de
 | Item count | Number of extracted items matches Priority |
 | Quantities | Per-item quantity matches Priority |
 | Prices | Per-item price matches Priority (tolerance: ±$0.01) |
-| Total price | AI grand total matches Priority `DISPRICE` |
+| Total price | AI grand total matches Priority `PRICE` |
 | Shipping | AI shipping charge matches the Priority `SH-*` line item |
 
 ### Step 5 — Update delivery dates
 
-For each validated line item, a `PATCH` request updates `REQDATE` on the corresponding Priority order line. If the calculated date falls on a Saturday it is automatically shifted to the preceding Friday.
+For each validated line item, a `PATCH` request updates `DATE` on the corresponding Priority order line. If the calculated date falls on a Saturday it is automatically shifted to the preceding Friday.
 
 ### Step 6 — Update order number
 
-The supplier's own order reference number (`SUPORDNUM`) and supplier code (`SUPNAME`) are patched onto the Priority purchase order.
+The supplier's own order reference number and supplier code are patched onto the Priority purchase order.
 
 ### Order status
 
 | Outcome | Status set in Priority |
 |---------|----------------------|
-| All validations passed | `אישור ספק` (Supplier Approved) |
-| Any discrepancy found | `נשלח לספק` (Sent to Supplier) |
+| All validations passed | (Supplier Approved) |
+| Any discrepancy found | (Sent to Supplier) |
 
 ---
 
@@ -179,12 +179,12 @@ The supplier's own order reference number (`SUPORDNUM`) and supplier code (`SUPN
 16:06:04 [INFO]  Price validation — Priority=2350.0 AI='USD 2,350.00'→2350.0 diff=0.0 match=YES
 16:06:04 [DEBUG] Item ITEM-001 — qty: 1 vs 1 EA | price: 2200.0 vs USD 2,200.00 (diff=0.0) | OK
 16:06:04 [INFO]  Item validation: all_valid=True count_match=True
-16:06:04 [DEBUG] PATCH ITEM-001 → REQDATE=2024-06-28T00:00:00+03:00
+16:06:04 [DEBUG] PATCH ITEM-001 → DATE=2024-06-28T00:00:00+03:00
 16:06:07 [DEBUG] PATCH response for ITEM-001: HTTP 200
-16:06:07 [INFO]  Setting order status → 'אישור ספק'
+16:06:07 [INFO]  Setting order status → approved
 16:06:09 [INFO]  Step 6: Updating order number
-16:06:11 [INFO]  Updating order number: SUPORDNUM=100000001 SUPNAME=DEMO-VENDOR
-16:06:12 [INFO]  Order number update: SUPORDNUM=100000001, SUPNAME=DEMO-VENDOR
+16:06:11 [INFO]  Updating order number: ORDNUM=100000001 SUB_NAMEE=DEMO-VENDOR
+16:06:12 [INFO]  Order number update: ORDNUM=100000001, SUB_NAME=DEMO-VENDOR
 16:06:15 [INFO]  MongoDB: Updated existing document for PO: PO2400000042
 ```
 ---
